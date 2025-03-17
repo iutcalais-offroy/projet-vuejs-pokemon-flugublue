@@ -45,6 +45,10 @@
 import { ref } from 'vue';
 import { useUserStore } from '../stores/user.store.ts'; 
 
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
 const userStore = useUserStore(); 
 const activeTab = ref('connexion');
 
@@ -58,9 +62,17 @@ const confirmMdp = ref('');
 const connexionUtilisateur = async () => {
     try {
         const response = await userStore.loginUserAction(email.value, mdp.value);
-        console.log('Utilisateur connecté :', response);
+        //console.log('Utilisateur connecté :', response);
+
+        const TOKEN = response.token;
+        const ID = response.user.id;
+
+        localStorage.TOKEN = TOKEN;
+        localStorage.ID = ID;
+
+        router.push('/deck-builder');
     } catch (error) {
-        console.error('Erreur de connexion :', error);
+        //console.error('Erreur de connexion :', error);
     }
 };
 
@@ -72,9 +84,9 @@ const creationUtilisateur = async () => {
         }
         
         const response = await userStore.createUserAction(registerEmail.value, registerMdp.value); 
-        console.log('Utilisateur créé :', response);
+        //console.log('Utilisateur créé :', response);
     } catch (error) {
-        console.error("Erreur lors de l'inscription :", error);
+        //console.error("Erreur lors de l'inscription :", error);
     }
 };
 </script>

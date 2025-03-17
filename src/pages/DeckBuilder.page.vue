@@ -1,8 +1,12 @@
 <template>
   Complete this template
+  
 </template>
 
-<script lang="ts" setup>
+<script lang="js" setup>
+
+const token = localStorage.token;
+const id = localStorage.id
 
 </script>
 
