@@ -3,7 +3,7 @@ import { getPokemonCards } from '../apis/pokemonCards.api.ts';
 
 
 
-export const useUserStore = defineStore('user', {
+export const usePokemonCardsStore = defineStore('PokemonCards', {
 
     actions: {
         async getPokemonCardsAction() {
@@ -11,7 +11,7 @@ export const useUserStore = defineStore('user', {
                 const response = await getPokemonCards();
                 return response;
             } catch (error) {
-                console.error('Erreur lors du get :', error);
+                console.error('Erreur lors du get pokemon cards :', error);
                 throw error;
             }
         },
