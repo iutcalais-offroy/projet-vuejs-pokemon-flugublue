@@ -1,27 +1,65 @@
 <template>
   <div class="pokemon-cards">
+    <div v-if="deck.length > 0" class="deck-section">
+      <h2>Mon Deck</h2>
+      <div class="row deck-row">
+        <n-card
+          v-for="pokemon in deck"
+          :key="pokemon.id"
+          class="card"
+          @click="removeFromDeck(pokemon)"
+        >
+          <img :src="pokemon.imageUrl" :alt="pokemon.name" class="pokemon-image" />
+          
+          <h2>{{ pokemon.name }}</h2>
+          
+          <p class="size-weight">Taille: {{ pokemon.height }}m | Poids: {{ pokemon.weight }}kg</p>
+          
+          <div class="essentials">
+            <p class="life-points">PV {{ pokemon.lifePoints }}</p>
+            <n-tag :class="`type-tag ${pokemon.type.name.toLowerCase()}`">{{ pokemon.type.name }}</n-tag>
+          </div>
+          
+          <h3>Attaques : </h3>
+          <div class="attack">
+            <span class="bold-text">{{ pokemon.attack.name }}</span>
+            <n-tag :class="`type-tag ${pokemon.attack.type.name.toLowerCase()}`">{{ pokemon.attack.type.name }}</n-tag>
+            <span class="attack-damage">{{ pokemon.attack.damages }} PV</span>
+          </div>
+          
+          <h3>Faiblesse : </h3>
+          <div class="faiblesse">
+            <span class="bold-text">Faible au type </span>
+            <n-tag :class="`type-tag ${pokemon.weakness.name.toLowerCase()}`">{{ pokemon.weakness.name }}</n-tag>
+          </div>
+        </n-card>
+      </div>
+    </div>
+
     <input v-model="searchQuery" type="text" placeholder="Rechercher un Pokémon" class="barre-de-recherche" />
-    <HR></HR>
+    <hr />
     <div class="row" v-for="(chunk, index) in filtrePokemonCards" :key="index">
-      <n-card v-for="pokemon in chunk" :key="pokemon.id" class="card">
+      <n-card
+        v-for="pokemon in chunk"
+        :key="pokemon.id"
+        class="card"
+        @click="addToDeck(pokemon)"
+        :class="{'in-deck': isInDeck(pokemon)}"
+      >
         <img :src="pokemon.imageUrl" :alt="pokemon.name" class="pokemon-image" />
         <h2>{{ pokemon.name }}</h2>
-
         <div class="essentials">
           <p class="life-points">PV {{ pokemon.lifePoints }}</p>
           <n-tag :class="`type-tag ${pokemon.type.name.toLowerCase()}`">{{ pokemon.type.name }}</n-tag>
         </div>
-
         <p class="size-weight">Taille: {{ pokemon.height }}m | Poids: {{ pokemon.weight }}kg</p>
-
         <h3>Attaques : </h3>
         <div class="attack">
           <span class="bold-text">{{ pokemon.attack.name }}</span>
           <n-tag :class="`type-tag ${pokemon.attack.type.name.toLowerCase()}`">{{ pokemon.attack.type.name }}</n-tag>
           <span class="attack-damage">{{ pokemon.attack.damages }} PV</span>
         </div>
-
-        <h3>faiblesse : </h3>
+        <h3>Faiblesse : </h3>
         <div class="faiblesse">
           <span class="bold-text">Faible au type </span>
           <n-tag :class="`type-tag ${pokemon.weakness.name.toLowerCase()}`">{{ pokemon.weakness.name }}</n-tag>
@@ -32,12 +70,13 @@
 </template>
 
 <script lang="js" setup>
-import { onMounted, ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { usePokemonCardsStore } from '../stores/pokemonCards.store';
 import { NCard, NTag } from 'naive-ui';
 
 const PokemonCardsStore = usePokemonCardsStore();
 const pokemonCards = ref([]);
+const deck = ref([]);
 const searchQuery = ref('');
 
 onMounted(async () => {
@@ -50,7 +89,9 @@ onMounted(async () => {
 });
 
 const filtrePokemonCards = computed(() => {
-  const filtered = pokemonCards.value.filter(pokemon => pokemon.name.toLowerCase().includes(searchQuery.value.toLowerCase()) );
+  const filtered = pokemonCards.value.filter(pokemon =>
+    pokemon.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
   return decomposition(filtered, 3);
 });
 
@@ -61,12 +102,25 @@ const decomposition = (array, size) => {
   }
   return result;
 };
+
+const addToDeck = (pokemon) => {
+  if (!deck.value.some(item => item.id === pokemon.id)) {
+    deck.value.push(pokemon);
+  }
+};
+
+const removeFromDeck = (pokemon) => {
+  deck.value = deck.value.filter(item => item.id !== pokemon.id);
+};
+
+const isInDeck = (pokemon) => {
+  return deck.value.some(item => item.id === pokemon.id);
+};
 </script>
 
 <style scoped>
-
 hr {
-  height: 1px;
+  height: 0.25px;
   width: 100%;
   background-color: black;
   margin: 20px 0;
@@ -87,10 +141,16 @@ hr {
   min-width: 60vw;
   height: 40px;
   padding: 10px;
-  margin-bottom: 20px;
   font-size: 16px;
   box-sizing: border-box;
   border: 2px solid #ccc;
+  border-radius: 8px;
+}
+
+.deck-section {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f9f9f9;
   border-radius: 8px;
 }
 
@@ -98,6 +158,16 @@ hr {
   display: flex;
   gap: 20px;
   justify-content: center;
+}
+
+.deck-row {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.deck-row .card {
+  flex: 1 1 calc(33.33% - 20px);
+  max-width: calc(33.33% - 20px);
 }
 
 .card {
@@ -129,17 +199,6 @@ hr {
   font-size: 12px;
 }
 
-.type-tag.grass { background-color: #48c774; color: white; }
-.type-tag.fire { background-color: #f14668; color: white; }
-.type-tag.water { background-color: #3298dc; color: white; }
-.type-tag.electric { background-color: #ffdd57; color: black; }
-.type-tag.poison { background-color: #ee2bea; color: white; }
-.type-tag.ground { background-color: #6f522a; color: white; }
-.type-tag.normal { background-color: #c0ad93; color: white; }
-.type-tag.bug { background-color: #c5da5f; color: white; }
-.type-tag.fighting { background-color: #8e3207; color: white; }
-.type-tag.psychic { background-color: #8e16d3; color: white; }
-
 .size-weight {
   font-size: 14px;
   margin-bottom: 10px;
@@ -161,6 +220,19 @@ hr {
   color: red;
 }
 
+.in-deck {
+  opacity: 0.5;
+  pointer-events: none;
+}
 
-
+.type-tag.grass { background-color: #48c774; color: white; }
+.type-tag.fire { background-color: #f14668; color: white; }
+.type-tag.water { background-color: #3298dc; color: white; }
+.type-tag.electric { background-color: #ffdd57; color: black; }
+.type-tag.poison { background-color: #ee2bea; color: white; }
+.type-tag.ground { background-color: #6f522a; color: white; }
+.type-tag.normal { background-color: #c0ad93; color: white; }
+.type-tag.bug { background-color: #c5da5f; color: white; }
+.type-tag.fighting { background-color: #8e3207; color: white; }
+.type-tag.psychic { background-color: #8e16d3; color: white; }
 </style>
